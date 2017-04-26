@@ -1,0 +1,10 @@
+#INFRASTRUCTURE TO WRITE YOUR OWN PASS
+
+#Step3
+$~/enee645/obj: ../sample/configure --with-llvmsrc=/afs/glue/class/old/enee/759c/llvm/llvm-3.4.src --with-llvmobj=/afs/glue/class/old/enee/759c/llvm/llvm-3.4-install/obj --prefix=/homes/kkelly17/enee645/opt
+
+#Step4
+$~/enee645/obj: make install
+
+#Step6
+$~/enee645/obj: opt -load ../opt/lib/libP_Clone.so -p_clone /afs/glue/class/old/enee/759c/llvm/test_codes/example1.bc -o example.1p_clone.bc

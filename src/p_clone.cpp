@@ -17,17 +17,23 @@
 #include "llvm/IR/Function.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/InstVisitor.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/InstIterator.h"
+
 using namespace llvm;
 
 
 
 namespace {
-struct Hello :  public FunctionPass
+struct P_clone :  public FunctionPass
 {
 
         /** Constructor. */
 	static char ID;                           
-	Hello() : FunctionPass(ID) {}
+	P_clone() : FunctionPass(ID) {}
 
         //DEFINE_INTPASS_ANALYSIS_ADJUSTMENT(PointerAnalysisPass);
 
@@ -36,17 +42,31 @@ struct Hello :  public FunctionPass
          * @param [in,out] func The function to analyze
          * @return true if the function was modified; false otherwise
         */
-        virtual bool runOnFunction(llvm::Function &F){
-		errs() << "Hello: " ;
-		errs().write_escaped(F.getName())<< "\n";
-		return false;
-	}
-
+        virtual bool runOnFunction(Function &F){
+            for (Function::iterator bb = F.begin(), bbe = F.end(); bb != bbe; ++bb) {
+                BasicBlock &b = *bb;
+                for (BasicBlock::iterator i = b.begin(), ie = b.end(); i != ie; ++i) {
+                    if (isa<CallInst>(i)) {
+                        StringRef name = cast<CallInst>(i).getCalledFunction().getName();
+                        char first_letter = name.front();
+                        if (first_letter == 'p'){
+                            errs() << "P_clone: ";
+                            errs() << "function needs to be cloned\n";
+                        }
+                        else {
+                            errs() << "Hello: " ;
+                            errs() << "skip function\n";
+                        }
+                    }
+                }
+            }
+            return false;
+        }
 };
 }
 
-char Hello::ID = 0;
-static RegisterPass<Hello> X("hello", "Hello World Pass", false, false);
+char P_clone::ID = 0;
+static RegisterPass<P_clone> X("p_clone", "P-Function Clone Pass", false, false);
 
 
 
