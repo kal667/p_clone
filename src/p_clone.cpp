@@ -48,8 +48,17 @@ struct P_clone :  public FunctionPass
                     errs() << *i << "\n";
                     if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
                         errs() << "Found function\n";
+                        
+                        Function *func = callInst->getCalledFunction();
+                        if (func) {
+                            StringRef func_name = func->getName(); // inherited from llvm::Value
+                            errs() << "Function name starts with: " ;
+                            errs() << func_name.front() << "\n";
+                        }
+                        else {
+                            errs() << "Indirect call\n";
+                        }
                         /*
-                        StringRef func_name = callInst->getCalledFunction()->getName();
                         char first_letter = func_name.front();
                         if (first_letter == 'p'){
                             errs() << "P_clone: ";
