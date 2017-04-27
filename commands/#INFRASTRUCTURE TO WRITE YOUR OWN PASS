@@ -6,5 +6,8 @@ $~/enee645/obj: ../sample/configure --with-llvmsrc=/afs/glue/class/old/enee/759c
 #Step4
 $~/enee645/obj: make install
 
+#Step5
+~/enee645/obj: setenv PATH /afs/glue/class/old/enee/759c/llvm/llvm-3.4-install/opt/bin/:$PATH
+
 #Step6
-$~/enee645/obj: opt -load ../opt/lib/libP_Clone.so -p_clone /afs/glue/class/old/enee/759c/llvm/test_codes/example1.bc -o example.1p_clone.bc
+$~/enee645/obj: opt -load ../opt/lib/libP_clone.so -p_clone /afs/glue/class/old/enee/759c/llvm/test_codes/example1.bc -o example.1p_clone.bc

@@ -18,8 +18,8 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "llvm/ADT/StringRef.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/InstVisitor.h"
+#include "llvm/IR/Instructions.h"
+//#include "llvm/IR/InstVisitor.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/InstIterator.h"
 
@@ -43,20 +43,23 @@ struct P_clone :  public FunctionPass
          * @return true if the function was modified; false otherwise
         */
         virtual bool runOnFunction(Function &F){
-            for (Function::iterator bb = F.begin(), bbe = F.end(); bb != bbe; ++bb) {
-                BasicBlock &b = *bb;
-                for (BasicBlock::iterator i = b.begin(), ie = b.end(); i != ie; ++i) {
-                    if (isa<CallInst>(i)) {
-                        StringRef name = cast<CallInst>(i).getCalledFunction().getName();
-                        char first_letter = name.front();
+            for (Function::iterator b = F.begin(), be = F.end(); b != be; ++b) {
+                for (BasicBlock::iterator i = b->begin(), ie = b->end(); i != ie; ++i) {
+                    errs() << *i << "\n";
+                    if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
+                        errs() << "Found function\n";
+                        /*
+                        StringRef func_name = callInst->getCalledFunction()->getName();
+                        char first_letter = func_name.front();
                         if (first_letter == 'p'){
                             errs() << "P_clone: ";
                             errs() << "function needs to be cloned\n";
                         }
                         else {
-                            errs() << "Hello: " ;
+                            errs() << "P_clone: " ;
                             errs() << "skip function\n";
                         }
+                        */
                     }
                 }
             }
