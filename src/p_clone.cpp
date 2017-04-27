@@ -52,23 +52,15 @@ struct P_clone :  public FunctionPass
                         Function *func = callInst->getCalledFunction();
                         if (func) {
                             StringRef func_name = func->getName(); // inherited from llvm::Value
-                            errs() << "Function name starts with: " ;
-                            errs() << func_name.front() << "\n";
+                            errs() << "Function name: " ;
+                            errs() << func_name << "\n";
+                            if (func_name.front() == 'p'){
+                                errs() << "Function name starts with 'p'\n";
+                            }
                         }
                         else {
                             errs() << "Indirect call\n";
                         }
-                        /*
-                        char first_letter = func_name.front();
-                        if (first_letter == 'p'){
-                            errs() << "P_clone: ";
-                            errs() << "function needs to be cloned\n";
-                        }
-                        else {
-                            errs() << "P_clone: " ;
-                            errs() << "skip function\n";
-                        }
-                        */
                     }
                 }
             }
