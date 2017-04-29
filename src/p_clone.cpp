@@ -114,7 +114,9 @@ struct P_clone :  public FunctionPass
                                                     errs() << *ret_inst << "\n";
 
                                                     // Create a new store instruction
-                                                    //Value *ret_value = ReturnInst::getReturnValue();
+                                                    Value *ret_value = ret_inst->getReturnValue();
+                                                    errs() << "Return value: " ;
+                                                    errs() << *ret_value << "\n";
                                                     //StoreInst *ptr = new StoreInst(ret_value, gvar_int32_g, false, entry)
                                                 }
                                             }
