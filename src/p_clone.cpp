@@ -20,6 +20,7 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Module.h"
 
 using namespace llvm;
 
@@ -41,6 +42,7 @@ struct P_clone :  public FunctionPass
         *
         */
         virtual bool runOnFunction(Function &F){
+            bool modified = false;
             
             // Create new global variable
             Module *M = F.getParent();
@@ -81,10 +83,16 @@ struct P_clone :  public FunctionPass
                                     
                                     // Clone the function
                                     ValueToValueMapTy VMap;
-                                    Function *cloned_func = CloneFunction(func, VMap, false);
+                                    Function *cloned_func = CloneFunction(func, VMap, false, NULL);
                                     if (cloned_func == NULL) {
                                         errs() << "ERROR: Cloning failed!\n";
+                                        return modified;
                                     }
+
+                                    //Given by Amir
+                                    func->getParent()->getFunctionList().push_back(cloned_func); //will push the cloned function to the list of functions in current module
+                                    cloned_func->setLinkage(GlobalValue::InternalLinkage); //will the set the linkage of cloned function to internal linkage
+                                    callInst->setCalledFunction(cloned_func); // will change the called function of initial call instruction
 
                                     // This gets the type of the original function
                                     Type *func_return_type = func->getReturnType();
@@ -94,7 +102,23 @@ struct P_clone :  public FunctionPass
                                     
                                     // Check to see if the function returns an int
                                     if (func_return_type == I32Ty) {
+                                        modified = true;
                                         errs() << "Function returns type int\n";
+
+                                        // Iterate through instructions looking for return instruction
+                                        for (Function::iterator b2 = func->begin(), be2 = func->end(); b2 != be2; ++b2) {
+                                            for (BasicBlock::iterator i2 = b2->begin(), ie2 = b2->end(); i2 != ie2; ++i2) {
+                                                if (ReturnInst *ret_inst = dyn_cast<ReturnInst>(&*i2)) {
+                                                    errs() << "Found return instruction\n";
+                                                    errs() << "Return instruction: " ;
+                                                    errs() << *ret_inst << "\n";
+
+                                                    // Create a new store instruction
+                                                    //Value *ret_value = ReturnInst::getReturnValue();
+                                                    //StoreInst *ptr = new StoreInst(ret_value, gvar_int32_g, false, entry)
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -106,7 +130,7 @@ struct P_clone :  public FunctionPass
                     }
                 }
             }
-            return false;
+            return modified;
         }
 };
 }
