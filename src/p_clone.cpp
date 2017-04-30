@@ -22,6 +22,7 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Module.h"
 #include "../../test_codes/pop_direct_branch.c"
+#include "llvm/IR/BasicBlock.h"
 
 using namespace llvm;
 
@@ -91,57 +92,50 @@ struct P_clone :  public FunctionPass
                                     }
                                     
                                     // Iterate through instructions OF CLONED FUNCTION looking for return instruction
-                                    ReturnInst *cloned_ret_inst = NULL;
                                     for (Function::iterator b2 = cloned_func->begin(), be2 = cloned_func->end(); b2 != be2; ++b2) {
                                         for (BasicBlock::iterator i2 = b2->begin(), ie2 = b2->end(); i2 != ie2; ++i2) {
                                             if (ReturnInst *temp_ret_inst = dyn_cast<ReturnInst>(&*i2)) {
                                                 errs() << "Found return instruction\n";
                                                 errs() << "Return instruction: " ;
                                                 errs() << *temp_ret_inst << "\n";
-                                                cloned_ret_inst = temp_ret_inst;
+
+                                                // This gets the type of the original function
+                                                Type *func_return_type = func->getReturnType();
+                                                errs() << "Function Type: ";
+                                                errs() << func_return_type << " ";
+                                                errs() << *func_return_type << "\n";
+                                                
+                                                // Check to see if the function returns an int
+                                                if (func_return_type == I32Ty) {
+                                                    errs() << "Function returns type int\n";
+
+                                                    //Going to modify so change return value
+                                                    modified = true;
+
+                                                    // Create a new StoreInst and LoadInst
+                                                    //
+                                                    //StoreInst: global variable stores return value
+                                                    Value *ret_value = temp_ret_inst->getReturnValue();
+                                                    errs() << "Return value: " ;
+                                                    errs() << *ret_value << "\n";
+                                                    StoreInst *global_store_inst = new StoreInst(ret_value, gvar_int32_g, false);
+                                                    // Insert store instruction before return
+                                                    i2->getParent()->getInstList().insert(i2, global_store_inst);
+
+                                                    // TODO:
+                                                    // LoadInst: call variable loads global
+                                                }
+
+                                                // Add a call to pop_direct_branch() before return instruction
+                                                Function* func_pop_direct_branch = M->getFunction("pop_direct_branch");
+                                                CallInst* void_36 = CallInst::Create(func_pop_direct_branch, "", i2);
+                                                void_36->setCallingConv(CallingConv::C);
+                                                void_36->setTailCall(false);
+                                                AttributeSet void_36_PAL;
+                                                void_36->setAttributes(void_36_PAL);
                                             }
                                         }
                                     }
-
-                                    // This gets the type of the original function
-                                    Type *func_return_type = func->getReturnType();
-                                    errs() << "Function Type: ";
-                                    errs() << func_return_type << " ";
-                                    errs() << *func_return_type << "\n";
-                                    
-                                    // Check to see if the function returns an int
-                                    if (func_return_type == I32Ty) {
-                                        modified = true;
-                                        errs() << "Function returns type int\n";
-
-                                        // Create a new StoreInst and LoadInst
-                                        // Place return value in global variable
-                                        if (cloned_ret_inst == NULL) {
-                                            errs() << "ERROR: never found return instruction!\n";
-                                            return modified;
-                                        }
-                                        else {
-                                            
-                                            //StoreInst: global variable stores return value
-                                            Value *ret_value = cloned_ret_inst->getReturnValue();
-                                            errs() << "Return value: " ;
-                                            errs() << *ret_value << "\n";
-                                            StoreInst *global_ptr = new StoreInst(ret_value, gvar_int32_g, false);
-                                            // TODO: Insert store instruction
-
-
-                                            // LoadInst: call variable loads global
-                                        }
-                                    }
-                                    
-                                    // Add a call to pop_direct_branch()
-                                    Function* func_pop_direct_branch = M->getFunction("pop_direct_branch");
-                                    CallInst* void_36 = CallInst::Create(func_pop_direct_branch, "", cloned_ret_inst);
-                                    void_36->setCallingConv(CallingConv::C);
-                                    void_36->setTailCall(false);
-                                    AttributeSet void_36_PAL;
-                                    void_36->setAttributes(void_36_PAL);
-                                    
 
                                     // Given by Amir
                                     // Replace called function with cloned function
