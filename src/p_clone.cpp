@@ -50,6 +50,7 @@ struct P_clone :  public FunctionPass
             errs() << "Created Function Type: ";
             errs() << I32Ty << " ";
             errs() << *I32Ty << "\n";
+            
             // Global Variable Declarations
              GlobalVariable* gvar_int32_g = new GlobalVariable(/*Module=*/*M,
             /*Type=*/I32Ty,
@@ -68,7 +69,7 @@ struct P_clone :  public FunctionPass
                         errs() << "Found function\n";
                         Function *func = callInst->getCalledFunction();
                             
-                        // Checks against null
+                        // Checks against NULL
                         if (func) {
                             StringRef func_name = func->getName();
                             errs() << "Function name: " ;
@@ -88,57 +89,65 @@ struct P_clone :  public FunctionPass
                                         errs() << "ERROR: Cloning failed!\n";
                                         return modified;
                                     }
-
-                                    //Given by Amir
-                                    func->getParent()->getFunctionList().push_back(cloned_func); //will push the cloned function to the list of functions in current module
-                                    cloned_func->setLinkage(GlobalValue::InternalLinkage); //will the set the linkage of cloned function to internal linkage
-                                    callInst->setCalledFunction(cloned_func); // will change the called function of initial call instruction
                                     
-                                    // Iterate through instructions looking for return instruction
-                                    ReturnInst *ret_inst = NULL;
-                                    for (Function::iterator b2 = func->begin(), be2 = func->end(); b2 != be2; ++b2) {
+                                    // Iterate through instructions OF CLONED FUNCTION looking for return instruction
+                                    ReturnInst *cloned_ret_inst = NULL;
+                                    for (Function::iterator b2 = cloned_func->begin(), be2 = cloned_func->end(); b2 != be2; ++b2) {
                                         for (BasicBlock::iterator i2 = b2->begin(), ie2 = b2->end(); i2 != ie2; ++i2) {
                                             if (ReturnInst *temp_ret_inst = dyn_cast<ReturnInst>(&*i2)) {
                                                 errs() << "Found return instruction\n";
                                                 errs() << "Return instruction: " ;
                                                 errs() << *temp_ret_inst << "\n";
-                                                ret_inst = temp_ret_inst;
+                                                cloned_ret_inst = temp_ret_inst;
                                             }
                                         }
                                     }
 
-                                    // Check to see if the function returns an int
                                     // This gets the type of the original function
                                     Type *func_return_type = func->getReturnType();
                                     errs() << "Function Type: ";
                                     errs() << func_return_type << " ";
                                     errs() << *func_return_type << "\n";
                                     
-                                    // If so, then we need to create StoreInst
+                                    // Check to see if the function returns an int
                                     if (func_return_type == I32Ty) {
                                         modified = true;
                                         errs() << "Function returns type int\n";
 
-                                        // Create a new store instruction
+                                        // Create a new StoreInst and LoadInst
                                         // Place return value in global variable
-                                        if (ret_inst == NULL) {
+                                        if (cloned_ret_inst == NULL) {
                                             errs() << "ERROR: never found return instruction!\n";
+                                            return modified;
                                         }
                                         else {
-                                            Value *ret_value = ret_inst->getReturnValue();
+                                            
+                                            //StoreInst: global variable stores return value
+                                            Value *ret_value = cloned_ret_inst->getReturnValue();
                                             errs() << "Return value: " ;
                                             errs() << *ret_value << "\n";
                                             StoreInst *global_ptr = new StoreInst(ret_value, gvar_int32_g, false);
+                                            // TODO: Insert store instruction
+
+
+                                            // LoadInst: call variable loads global
                                         }
                                     }
-                                    /*
+                                    
                                     // Add a call to pop_direct_branch()
-                                    CallInst* void_36 = CallInst::Create(pop_direct_branch, "", ret_inst);//This needs to be changed to the return instruction of the clone
+                                    Function* func_pop_direct_branch = M->getFunction("pop_direct_branch");
+                                    CallInst* void_36 = CallInst::Create(func_pop_direct_branch, "", cloned_ret_inst);
                                     void_36->setCallingConv(CallingConv::C);
                                     void_36->setTailCall(false);
                                     AttributeSet void_36_PAL;
                                     void_36->setAttributes(void_36_PAL);
-                                    */
+                                    
+
+                                    // Given by Amir
+                                    // Replace called function with cloned function
+                                    func->getParent()->getFunctionList().push_back(cloned_func); //will push the cloned function to the list of functions in current module
+                                    cloned_func->setLinkage(GlobalValue::InternalLinkage); //will the set the linkage of cloned function to internal linkage
+                                    callInst->setCalledFunction(cloned_func); // will change the called function of initial call instruction
                                 }
                             }
                         }
@@ -147,7 +156,7 @@ struct P_clone :  public FunctionPass
                             errs() << "Indirect call\n";
                         }
                     }
-                }
+                } 
             }
             return modified;
         }
