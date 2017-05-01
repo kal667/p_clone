@@ -21,7 +21,6 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Module.h"
-#include "../../test_codes/pop_direct_branch.c"
 #include "llvm/IR/BasicBlock.h"
 
 using namespace llvm;
@@ -42,6 +41,8 @@ struct P_clone :  public FunctionPass
         *
         *
         */
+        // TODO:Change to module pass and then iterate over functions
+        // This will allow us to only create one global variable
         virtual bool runOnFunction(Function &F){
             bool modified = false;
             
@@ -61,6 +62,10 @@ struct P_clone :  public FunctionPass
             /*Name=*/"g");
             gvar_int32_g->setAlignment(4);
 
+            // Global Variable Definitions
+            // TODO: initialize this value
+            //gvar_int32_g->setInitializer(I32Ty);
+
             for (Function::iterator b = F.begin(), be = F.end(); b != be; ++b) {
                 for (BasicBlock::iterator i = b->begin(), ie = b->end(); i != ie; ++i) {
                     errs() << *i << "\n";
@@ -69,9 +74,6 @@ struct P_clone :  public FunctionPass
                     if (CallInst* callInst = dyn_cast<CallInst>(&*i)) {
                         errs() << "Found function\n";
                         Function *func = callInst->getCalledFunction();
-
-                        //errs() << "Instruction name: ";
-                        //errs() << i->getName() << "\n";
                             
                         // Checks against NULL
                         if (func) {
@@ -98,6 +100,8 @@ struct P_clone :  public FunctionPass
                                         }
                                         else {
                                             errs() << "Function cloned\n";
+                                            //Going to modify so change return value
+                                            modified = true;
                                         }
                                         
                                         // Iterate through instructions OF CLONED FUNCTION looking for return instruction
@@ -117,12 +121,9 @@ struct P_clone :  public FunctionPass
                                                     if (func_return_type == I32Ty) {
                                                         errs() << "Function returns type int\n";
 
-                                                        //Going to modify so change return value
-                                                        modified = true;
-
                                                         // Create a new StoreInst and LoadInst
                                                         //
-                                                        //StoreInst: global variable stores return value
+                                                        //StoreInst: global variable stores return value IN CLONED FUNCTION
                                                         Value *ret_value = temp_ret_inst->getReturnValue();
                                                         errs() << "Return value: " ;
                                                         errs() << *ret_value << "\n";
@@ -131,10 +132,11 @@ struct P_clone :  public FunctionPass
                                                         i2->getParent()->getInstList().insert(i2, global_store_inst);
 
                                                         // TODO:
-                                                        // LoadInst: call variable loads global
+                                                        // LoadInst: call variable loads global AT CALL SITE, after call
+                                                        // LoadInst *global_load_inst = new LoadInst(,,);
                                                     }
 
-                                                    // Add a call to pop_direct_branch() before return instruction
+                                                    // Add a call to pop_direct_branch() before return instruction IN CLONED FUNCTION
                                                     Function* func_pop_direct_branch = M->getFunction("pop_direct_branch");
                                                     CallInst* void_36 = CallInst::Create(func_pop_direct_branch, "", i2);
                                                     void_36->setCallingConv(CallingConv::C);
@@ -146,7 +148,7 @@ struct P_clone :  public FunctionPass
                                         }
 
                                         // Given by Amir
-                                        // Replace called function with cloned function
+                                        // Replace called function with cloned function AT CALL SITE
                                         func->getParent()->getFunctionList().push_back(cloned_func); //will push the cloned function to the list of functions in current module
                                         cloned_func->setLinkage(GlobalValue::InternalLinkage); //will the set the linkage of cloned function to internal linkage
                                         callInst->setCalledFunction(cloned_func); // will change the called function of initial call instruction
