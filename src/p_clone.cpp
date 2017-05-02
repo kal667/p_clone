@@ -22,6 +22,7 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/BasicBlock.h"
+#include <llvm/IR/Constants.h>
 
 using namespace llvm;
 
@@ -54,16 +55,19 @@ struct P_clone :  public ModulePass
             
             // Global Variable Declarations
              GlobalVariable* gvar_int32_g = new GlobalVariable(/*Module=*/M,
-            /*Type=*/I32Ty,
+            /*Type=*/IntegerType::get(M.getContext(), 32),
             /*isConstant=*/false,
             /*Linkage=*/GlobalValue::CommonLinkage,
             /*Initializer=*/0, // has initializer, specified below
             /*Name=*/"g");
             gvar_int32_g->setAlignment(4);
 
+            // Constant Definitions
+            ConstantInt* const_int32_7 = ConstantInt::get(M.getContext(), APInt(32, StringRef("0"), 10));
+
             // Global Variable Definitions
             // TODO: initialize this value
-            //gvar_int32_g->setInitializer(I32Ty);
+            gvar_int32_g->setInitializer(const_int32_7);
 
             for(Module::iterator F = M.begin(), E = M.end(); F!=E; ++F) {
                 errs() << "In function: ";
@@ -131,12 +135,23 @@ struct P_clone :  public ModulePass
                                                             errs() << "Return value: " ;
                                                             errs() << *ret_value << "\n";
                                                             StoreInst *global_store_inst = new StoreInst(ret_value, gvar_int32_g, false);
+                                                            global_store_inst->setAlignment(4);
+                                                            errs() << "Global store instruction: " ;
+                                                            errs() << *global_store_inst << "\n";
                                                             // Insert store instruction before return
                                                             i2->getParent()->getInstList().insert(i2, global_store_inst);
 
                                                             // TODO:
                                                             // LoadInst: call variable loads global AT CALL SITE, after call
                                                             // LoadInst *global_load_inst = new LoadInst(,,);
+                                                            // Trying to do both with StoreInst instead...
+                                                            StoreInst *caller_store_inst = new StoreInst(gvar_int32_g, func, false);
+                                                            caller_store_inst->setAlignment(4);
+                                                            errs() << "Caller store instruction: " ;
+                                                            errs() << *caller_store_inst << "\n";
+                                                            // Insert store instruction before after function call
+                                                            Instruction *after_func_call = ++i;
+                                                            after_func_call->getParent()->getInstList().insert(after_func_call, caller_store_inst);
                                                         }
 
                                                         // Add a call to pop_direct_branch() before return instruction IN CLONED FUNCTION
