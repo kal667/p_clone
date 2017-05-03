@@ -163,8 +163,9 @@ struct P_clone :  public ModulePass
                                                             // Insert store instruction after function call
                                                             inst_after_func_call->getParent()->getInstList().insert(inst_after_func_call, caller_store_inst);
 
-                                                            // Delete previous store instruction
-                                                            //inst_after_func_call->eraseFromParent();
+                                                            // Decrement counter and delete previous store instruction
+                                                            --i;
+                                                            inst_after_func_call->eraseFromParent();
                                                         }
 
                                                         // Add a call to pop_direct_branch() before return instruction IN CLONED FUNCTION
