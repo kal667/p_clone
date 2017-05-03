@@ -128,12 +128,11 @@ struct P_clone :  public ModulePass
                                                         if (func_return_type == I32Ty) {
                                                             errs() << "Function returns type int\n";
 
-                                                            // Create a new StoreInst and LoadInst
-                                                            //
-                                                            //StoreInst: global variable stores return value IN CLONED FUNCTION
+                                                            // Get return value from return instruction
                                                             Value *ret_value = temp_ret_inst->getReturnValue();
                                                             errs() << "Return value: " ;
                                                             errs() << *ret_value << "\n";
+                                                            //StoreInst: global variable stores return value IN CLONED FUNCTION
                                                             StoreInst *global_store_inst = new StoreInst(ret_value, gvar_int32_g, false);
                                                             global_store_inst->setAlignment(4);
                                                             errs() << "Global store instruction: " ;
@@ -142,16 +141,30 @@ struct P_clone :  public ModulePass
                                                             i2->getParent()->getInstList().insert(i2, global_store_inst);
 
                                                             // TODO:
+                                                        
+                                                            // Get store instruction after the call instruction
+                                                            Instruction *inst_after_func_call = ++i;
+                                                            errs() << "Instruction after function call: " ;
+                                                            errs() << *inst_after_func_call << "\n";
+
                                                             // LoadInst: call variable loads global AT CALL SITE, after call
-                                                            // LoadInst *global_load_inst = new LoadInst(,,);
-                                                            // Trying to do both with StoreInst instead...
-                                                            StoreInst *caller_store_inst = new StoreInst(gvar_int32_g, func, false);
+                                                            // Load the global variable value into a temp variable
+                                                            LoadInst *global_load_inst = new LoadInst(gvar_int32_g, "", inst_after_func_call);
+                                                            global_load_inst->setAlignment(4);
+                                                            errs() << "Global load instruction: " ;
+                                                            errs() << *global_load_inst << "\n";
+                                                            
+                                                            // Store temp value into operand of the original store instruction
+                                                            StoreInst *caller_store_inst = new StoreInst(global_load_inst, inst_after_func_call->getOperand(1), false);
                                                             caller_store_inst->setAlignment(4);
                                                             errs() << "Caller store instruction: " ;
                                                             errs() << *caller_store_inst << "\n";
-                                                            // Insert store instruction before after function call
-                                                            Instruction *after_func_call = ++i;
-                                                            after_func_call->getParent()->getInstList().insert(after_func_call, caller_store_inst);
+
+                                                            // Insert store instruction after function call
+                                                            inst_after_func_call->getParent()->getInstList().insert(inst_after_func_call, caller_store_inst);
+
+                                                            // Delete previous store instruction
+                                                            //inst_after_func_call->eraseFromParent();
                                                         }
 
                                                         // Add a call to pop_direct_branch() before return instruction IN CLONED FUNCTION
