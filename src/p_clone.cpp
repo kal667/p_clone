@@ -124,7 +124,7 @@ struct P_clone :  public ModulePass
                                                         errs() << func_return_type << " ";
                                                         errs() << *func_return_type << "\n";
 
-                                                        // Get store instruction after the call instruction
+                                                        // Get instruction after the call instruction
                                                         Instruction *inst_after_func_call = ++i;
                                                         errs() << "Instruction after function call: " ;
                                                         errs() << *inst_after_func_call << "\n";
