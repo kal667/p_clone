@@ -123,10 +123,15 @@ struct P_clone :  public ModulePass
                                                         errs() << "Function return type: ";
                                                         errs() << func_return_type << " ";
                                                         errs() << *func_return_type << "\n";
+
+                                                        // Get store instruction after the call instruction
+                                                        Instruction *inst_after_func_call = ++i;
+                                                        errs() << "Instruction after function call: " ;
+                                                        errs() << *inst_after_func_call << "\n";
                                                         
-                                                        // Check to see if the function returns an int
-                                                        if (func_return_type == I32Ty) {
-                                                            errs() << "Function returns type int\n";
+                                                        // Check to see if the function returns an int and the instruction after call is a store
+                                                        if ((func_return_type == I32Ty) && (isa<StoreInst>(inst_after_func_call))) {
+                                                            errs() << "Function returns type int and instruction after call is a store\n";
 
                                                             // Get return value from return instruction
                                                             Value *ret_value = temp_ret_inst->getReturnValue();
@@ -139,13 +144,6 @@ struct P_clone :  public ModulePass
                                                             errs() << *global_store_inst << "\n";
                                                             // Insert store instruction before return
                                                             i2->getParent()->getInstList().insert(i2, global_store_inst);
-
-                                                            // TODO:
-                                                        
-                                                            // Get store instruction after the call instruction
-                                                            Instruction *inst_after_func_call = ++i;
-                                                            errs() << "Instruction after function call: " ;
-                                                            errs() << *inst_after_func_call << "\n";
 
                                                             // LoadInst: call variable loads global AT CALL SITE, after call
                                                             // Load the global variable value into a temp variable
@@ -166,6 +164,11 @@ struct P_clone :  public ModulePass
                                                             // Decrement counter and delete previous store instruction
                                                             --i;
                                                             inst_after_func_call->eraseFromParent();
+                                                        }
+
+                                                        // Not int or instruction after call is not a store
+                                                        else {
+                                                            --i;
                                                         }
 
                                                         // Add a call to pop_direct_branch() before return instruction IN CLONED FUNCTION

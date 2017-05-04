@@ -3,13 +3,8 @@
 
 void scan_int(int *x)
 {
-    scanf("%d", x);
-    return;
-}
-
-int pow2(int x)
-{
-    return x*x;
+   scanf("%d", x);
+   return;
 }
 
 void print_int(int x)
@@ -18,13 +13,11 @@ void print_int(int x)
     return;
 }
 
-int main ()
+int main()
 {
     int a;
     scan_int(&a);
-    int p;
-    p = pow2(a);
-    printf("pow2 of A = ");
-    print_int(p);
+    printf("The entered value is: ");
+    print_int(a);
     return 0;
 }

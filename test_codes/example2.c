@@ -12,19 +12,25 @@ int pow2(int x)
     return x*x;
 }
 
+void foo(int *y)
+{
+    int p;
+    p = pow2(*y);
+    *y = p + (*y)*2 + 1;  
+}
+
 void print_int(int x)
 {
     printf("%d \n", x);
     return;
 }
 
-int main ()
+int main()
 {
     int a;
     scan_int(&a);
-    int p;
-    p = pow2(a);
-    printf("pow2 of A = ");
-    print_int(p);
+    foo(&a);
+    printf("(x+1)^2 = ");
+    print_int(a);
     return 0;
 }
