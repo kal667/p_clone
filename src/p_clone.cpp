@@ -193,7 +193,53 @@ struct P_clone :  public ModulePass
                                     // Notify that it's a pop_direct_branch call
                                     else {
                                         errs() << "But it's a pop_direct_branch\n";
-                                    }
+                                        errs() << "Remove consecutive pop_direct_branch calls\n";
+
+                                        // Remove all subsequent pop_direct_branch calls
+                                        // Total hack solution
+                                        while (true) {
+                                        	// Increment instruction
+                                        	++i;
+                                        	errs() << "Next instruction: ";
+                                        	errs() << *i << "\n";
+
+                                        	// Checks for function call
+					                        if (CallInst* pop_check_callInst = dyn_cast<CallInst>(&*i)) {
+					                            errs() << "Found function\n";
+					                            Function *pop_check_func = pop_check_callInst->getCalledFunction();
+					                                
+					                            // Checks against NULL
+					                            if (pop_check_func) {
+					                                StringRef pop_check_func_name = pop_check_func->getName();
+					                                errs() << "Function name: " ;
+					                                errs() << pop_check_func_name.str() << "\n";
+
+				                                    // Check consecutive calls to pop_direct_branch
+				                                    if (func_name.str() == "pop_direct_branch") {
+				                                    	errs() << "Removing pop_direct_branch\n";
+				                                    	Instruction *redundant_pop_call = i;
+				                                    	--i;
+														redundant_pop_call->eraseFromParent();
+													}
+													else{
+														--i;
+														errs() << "Not a pop_direct_branch\n";
+														break;
+													}
+												}
+												else {
+													--i;
+													errs() << "Indirect call\n";
+													break;
+												}
+											}
+											else{
+												--i;
+												errs() << "Not a function\n";
+												break;
+											}
+										}
+                                	}
                                 }
                             }
                             // Null case
@@ -205,7 +251,7 @@ struct P_clone :  public ModulePass
                 }
             }
         return modified;
-    }
+    	}
 };
 }
 

@@ -171,7 +171,6 @@ define internal i32 @pow215(i32 %x) #0 {
   %4 = mul nsw i32 %2, %3
   store i32 %4, i32* @g, align 4
   call void @pop_direct_branch()
-  call void @pop_direct_branch()
   ret i32 %4
 }
 
@@ -185,7 +184,6 @@ define internal i32 @pow326(i32 %x) #0 {
   %5 = load i32* %1, align 4
   %6 = mul nsw i32 %4, %5
   store i32 %6, i32* @g, align 4
-  call void @pop_direct_branch()
   call void @pop_direct_branch()
   ret i32 %6
 }

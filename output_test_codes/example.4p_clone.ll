@@ -323,7 +323,6 @@ define internal i32 @pow2110(i32 %x) #0 {
   %4 = mul nsw i32 %2, %3
   store i32 %4, i32* @g, align 4
   call void @pop_direct_branch()
-  call void @pop_direct_branch()
   ret i32 %4
 }
 
@@ -335,7 +334,6 @@ define internal i32 @pow2211(i32 %x) #0 {
   %3 = load i32* %1, align 4
   %4 = mul nsw i32 %2, %3
   store i32 %4, i32* @g, align 4
-  call void @pop_direct_branch()
   call void @pop_direct_branch()
   ret i32 %4
 }
@@ -350,7 +348,6 @@ define internal i32 @pow3312(i32 %x) #0 {
   %5 = load i32* %1, align 4
   %6 = mul nsw i32 %4, %5
   store i32 %6, i32* @g, align 4
-  call void @pop_direct_branch()
   call void @pop_direct_branch()
   ret i32 %6
 }
@@ -371,7 +368,6 @@ define internal void @pow4413(i32* %x) #0 {
   %9 = load i32** %1, align 8
   store i32 %8, i32* %9, align 4
   call void @pop_direct_branch()
-  call void @pop_direct_branch()
   ret void
 }
 
@@ -383,7 +379,6 @@ define internal i32 @pow2214(i32 %x) #0 {
   %3 = load i32* %1, align 4
   %4 = mul nsw i32 %2, %3
   store i32 %4, i32* @g, align 4
-  call void @pop_direct_branch()
   call void @pop_direct_branch()
   ret i32 %4
 }
@@ -398,7 +393,6 @@ define internal i32 @pow3315(i32 %x) #0 {
   %5 = load i32* %1, align 4
   %6 = mul nsw i32 %4, %5
   store i32 %6, i32* @g, align 4
-  call void @pop_direct_branch()
   call void @pop_direct_branch()
   ret i32 %6
 }
@@ -419,7 +413,6 @@ define internal void @pow4416(i32* %x) #0 {
   %9 = load i32** %1, align 8
   store i32 %8, i32* %9, align 4
   call void @pop_direct_branch()
-  call void @pop_direct_branch()
   ret void
 }
 
@@ -432,8 +425,6 @@ define internal i32 @pow211017(i32 %x) #0 {
   %4 = mul nsw i32 %2, %3
   store i32 %4, i32* @g, align 4
   call void @pop_direct_branch()
-  call void @pop_direct_branch()
-  call void @pop_direct_branch()
   ret i32 %4
 }
 
@@ -445,8 +436,6 @@ define internal i32 @pow211018(i32 %x) #0 {
   %3 = load i32* %1, align 4
   %4 = mul nsw i32 %2, %3
   store i32 %4, i32* @g, align 4
-  call void @pop_direct_branch()
-  call void @pop_direct_branch()
   call void @pop_direct_branch()
   ret i32 %4
 }
