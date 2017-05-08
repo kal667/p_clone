@@ -35,15 +35,6 @@ struct P_clone :  public ModulePass
 	static char ID;                           
 	P_clone() : ModulePass(ID) {}
 
-        //DEFINE_INTPASS_ANALYSIS_ADJUSTMENT(PointerAnalysisPass);
-
-        /*
-        *
-        *
-        *
-        */
-        // TODO:Change to module pass and then iterate over functions
-        // This will allow us to only create one global variable
         virtual bool runOnModule(Module &M) {
             bool modified = false;
             
@@ -66,7 +57,6 @@ struct P_clone :  public ModulePass
             ConstantInt* const_int32_7 = ConstantInt::get(M.getContext(), APInt(32, StringRef("0"), 10));
 
             // Global Variable Definitions
-            // TODO: initialize this value
             gvar_int32_g->setInitializer(const_int32_7);
 
             for(Module::iterator F = M.begin(), E = M.end(); F!=E; ++F) {
